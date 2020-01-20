@@ -1,0 +1,65 @@
+# Servicio encargado de monitorear cambios en los archivos de los proveedores.
+#
+# AUTHOR: E Omar Reyes C
+#
+# DOCS: https://serverless.com/framework/docs/providers/aws/
+
+service: descargas-service
+app: Descargas-app
+frameworkVersion: ">=1.48.1"
+
+provider:
+  name: aws
+  runtime: python3.6
+  memorySize: 320
+  timeout: 300
+  versionFunctions: false
+  tags:
+    Proceso: descargas
+  stage: ${opt:stage, 'dev'}
+  region: ${self:custom.region}
+  deploymentBucket:
+    name: ${self:custom.bucketDeploy}
+    tags:
+      Proceso: CI/CD
+      Data: dataDescarga # Etiqueta que se usa para el ciclo de vida de los datos generados para el deploy.
+  iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - lambda:InvokeFunction
+          - s3:*
+        Resource: "*"
+
+custom: ${file(config_deploy/config.${self:provider.stage}.yml)}
+
+package:
+  individually: true
+
+functions:
+  descargas:
+    handler: LMD_Descarga.lambda_handler
+    name: ${self:provider.stage}-Descargas # optional, Deployed Lambda name
+    description: Hace las descargas de acuerdo a los protocolos # optional, Descr
+    package:
+      exclude:
+        - ptvsd-4.3.0.dist-info/**
+        - ptvsd/**
+        - .vscode/**
+        - __pycache__/**
+        - config_deploy/**
+        - node_modules/**
+        - tests/**
+        - CodeBuild-compile.json
+        - codeBuild-deploy-prod.json
+        - codeBuild-deploy-qa.json
+        - package.json
+        - package-lock.json
+        - pipeline.json
+        - README.md
+        - requirements.txt
+    vpc: ${self:custom.vpc}
+    environment: ${self:custom.environment}
+    layers: ${self:custom.layers}
+# # Plugins serverless
+# plugins:
+#   - serverless-python-requirements
