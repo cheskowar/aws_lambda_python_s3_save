@@ -1,4 +1,4 @@
-requests==2.22.0
+requests==2.31.0
 pymssql==2.1.4
 pytz==2019.3
 paramiko==2.6.0
